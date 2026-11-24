@@ -1,0 +1,38 @@
+[
+  {
+    "src": "matterhorn.webp",
+    "title": "After sunset, Staffelalp",
+    "alt": "A timber cabin and dark pines below the pale, steep face of the Matterhorn.",
+    "description": "The last light on the ridge, seen from a clearing above Zermatt.",
+    "location": "Valais, Switzerland",
+    "date": "c. 1890–1900",
+    "credit": "Library of Congress",
+    "creditUrl": "https://www.loc.gov/item/2001703333/",
+    "sample": true
+  },
+  {
+    "src": "venice.webp",
+    "title": "The Bridge of Sighs",
+    "alt": "A white stone bridge spans a narrow Venetian canal above gondolas in deep shadow.",
+    "description": "A strip of sky and an enclosed bridge divide the sunlit and shaded walls.",
+    "location": "Venice, Italy",
+    "date": "c. 1890–1900",
+    "credit": "Library of Congress",
+    "creditUrl": "https://www.loc.gov/item/2001700996/",
+    "sample": true
+  },
+  {
+    "src": "https://tile.loc.gov/storage-services/service/pnp/ppmsc/06400/06439v.jpg",
+    "fallback": "bellagio.webp",
+    "width": 1024,
+    "height": 764,
+    "title": "Boats off Bellagio",
+    "alt": "Boats float on still blue water beneath a tree framing Bellagio and the mountains beyond.",
+    "description": "Seen through the branches, the distant shore takes on the scale of a miniature.",
+    "location": "Lake Como, Italy",
+    "date": "c. 1890–1900",
+    "credit": "Library of Congress",
+    "creditUrl": "https://www.loc.gov/item/2001700779/",
+    "sample": true
+  }
+]

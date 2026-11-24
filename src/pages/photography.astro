@@ -1,0 +1,116 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import { photos } from '../lib/collections';
+import '../styles/collection.css';
+const samplesOnly = photos.length > 0 && photos.every(p => p.sample);
+---
+<Layout title="Photography" description="A collection of photographs, with captions, locations, and enlarged views." section="Photography">
+  <div class="wrap collection-page">
+    <header class="collection-heading">
+      <h1>Photography</h1>
+      {samplesOnly && <p>A selection of sample photographs. Source credits accompany each image.</p>}
+    </header>
+    {photos.length === 0 && <p>No photographs have been added yet.</p>}
+    <div class="photographs">
+      {photos.map((p, index) => <figure class="photo-entry" style={`--ratio: ${p.width / p.height}`}>
+        <a class="photo-link" href={p.original} data-title={p.title ?? p.alt}
+          data-meta={[p.location, p.date].filter(Boolean).join(' · ')} data-description={p.description}
+          data-backup={p.backup} aria-label={`Enlarge photograph: ${p.title ?? p.alt}`}>
+          {p.thumbnail
+            ? <Image src={p.thumbnail} widths={[320, 640, 960].filter(w => w < p.thumbnail!.width).concat(p.thumbnail.width)} sizes="(max-width: 640px) 90vw, 36vw" format="webp" quality={78} alt={p.alt} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />
+            : <img src={p.src} alt={p.alt} width={p.width} height={p.height} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />}
+          <span class="photo-error" hidden>Photograph unavailable. {p.alt}</span>
+        </a>
+        <figcaption>
+          {(p.title || p.location || p.date) && <div class="photo-caption">
+            {p.title && <h2>{p.title}</h2>}
+            {(p.location || p.date) && <p>{[p.location, p.date].filter(Boolean).join(' · ')}</p>}
+          </div>}
+          {p.description && <p class="photo-description">{p.description}</p>}
+          <small>{!samplesOnly && p.sample && 'Sample · '}{p.creditUrl
+            ? <a href={p.creditUrl}>{p.credit ?? 'Source record'}</a> : p.credit}</small>
+        </figcaption>
+      </figure>)}
+    </div>
+  </div>
+  <dialog class="photo-dialog" aria-labelledby="viewer-title">
+    <div class="viewer-command">
+      <p id="viewer-position"></p>
+      <form method="dialog"><button autofocus>Close</button></form>
+    </div>
+    <div class="viewer-image"><img alt="" /><p class="viewer-error" hidden></p></div>
+    <div class="viewer-foot">
+      <div aria-live="polite" aria-atomic="true"><h2 id="viewer-title"></h2><p id="viewer-meta"></p><p id="viewer-description"></p></div>
+      {photos.length > 1 && <div class="viewer-navigation" aria-label="Photograph controls">
+        <button data-step="-1">Previous</button><button data-step="1">Next</button>
+      </div>}
+    </div>
+  </dialog>
+  <script>
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.photo-link'));
+    const dialog = document.querySelector<HTMLDialogElement>('.photo-dialog')!;
+    const fullImage = dialog.querySelector('img')!;
+    const errorText = dialog.querySelector<HTMLElement>('.viewer-error')!;
+    const controlButtons = dialog.querySelectorAll<HTMLButtonElement>('[data-step]');
+    let position = 0;
+    let opener: HTMLAnchorElement | null = null;
+
+    function show(index: number) {
+      if (index < 0 || index >= links.length) return;
+      position = index;
+      const link = links[index];
+      const thumbnail = link.querySelector('img')!;
+      dialog.querySelector('#viewer-title')!.textContent = link.dataset.title ?? thumbnail.alt;
+      dialog.querySelector('#viewer-meta')!.textContent = link.dataset.meta ?? '';
+      dialog.querySelector('#viewer-description')!.textContent = link.dataset.description ?? '';
+      dialog.querySelector('#viewer-position')!.textContent = `${index + 1} / ${links.length}`;
+      fullImage.hidden = false;
+      errorText.hidden = true;
+      fullImage.alt = thumbnail.alt;
+      fullImage.src = link.href;
+      controlButtons.forEach(button => {
+        const next = position + Number(button.dataset.step);
+        button.disabled = next < 0 || next >= links.length;
+      });
+    }
+    fullImage.addEventListener('error', () => {
+      const backup = links[position]?.dataset.backup;
+      if (backup && fullImage.src !== new URL(backup, document.baseURI).href) {
+        fullImage.src = backup;
+        return;
+      }
+      fullImage.hidden = true;
+      errorText.textContent = `Photograph unavailable. ${fullImage.alt}`;
+      errorText.hidden = false;
+    });
+    links.forEach((link, index) => {
+      const image = link.querySelector('img')!;
+      function handleThumbnailError() {
+        image.hidden = true;
+        link.querySelector<HTMLElement>('.photo-error')!.hidden = false;
+      }
+      image.addEventListener('error', handleThumbnailError);
+      if (image.complete && !image.naturalWidth) handleThumbnailError();
+      link.addEventListener('click', event => {
+        if (!dialog.showModal || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.button !== 0) return;
+        event.preventDefault();
+        opener = link;
+        show(index);
+        dialog.showModal();
+      });
+    });
+    controlButtons.forEach(button => button.addEventListener('click', () => show(position + Number(button.dataset.step))));
+    dialog.addEventListener('keydown', event => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      show(position + (event.key === 'ArrowLeft' ? -1 : 1));
+    });
+    dialog.addEventListener('close', () => opener?.focus());
+    dialog.addEventListener('click', event => {
+      if (event.target !== dialog) return;
+      const box = dialog.getBoundingClientRect();
+      if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
+    });
+  </script>
+</Layout>

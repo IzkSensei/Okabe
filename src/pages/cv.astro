@@ -1,0 +1,105 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Publications from '../components/Publications.astro';
+import { profile } from '../config/profile';
+import { cv } from '../data/cv';
+import { href } from '../lib/paths';
+import '../styles/cv.css';
+
+const groups = [
+  { id: 'education', label: 'Education', entries: cv.education },
+  { id: 'research', label: 'Research experience', entries: cv.research },
+  { id: 'experience', label: 'Professional experience', entries: cv.experience },
+];
+const optionalGroups = [
+  { id: 'awards', label: 'Awards & scholarships', entries: cv.awards },
+  { id: 'activities', label: 'Academic activities', entries: cv.activities },
+].filter(group => group.entries.length > 0);
+
+const index = [
+  { id: 'profile', label: 'Research profile' }, groups[0],
+  { id: 'interests', label: 'Research interests' },
+  { id: 'publications', label: 'Publications' }, ...groups.slice(1),
+  { id: 'projects', label: 'Selected projects' },
+  { id: 'skills', label: 'Technical skills' },
+  ...optionalGroups, { id: 'contact', label: 'Contact & profiles' },
+];
+const profiles = profile.profiles.filter(item => item.url);
+---
+<Layout title="Curriculum vitae" description={'Academic background, research, and professional experience of ' + profile.name + '.'} section="CV">
+  <div class="wrap cv-page">
+    <div class="cv-heading">
+      <div>
+        <h1>Curriculum vitae</h1>
+        <p>{profile.title} · {profile.affiliation}</p>
+      </div>
+      <a class="cv-download" href={href(profile.cvPdf)} download>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg>
+        Download CV (PDF)
+      </a>
+    </div>
+    <div class="cv-grid">
+      <nav class="cv-index" aria-label="CV sections">
+        <strong>On this page</strong>
+        <ul role="list">{index.map(item => <li><a href={'#' + item.id}>{item.label}</a></li>)}</ul>
+      </nav>
+      <div class="cv-body">
+        <section id="profile">
+          <h2>Research profile</h2>
+          <p class="cv-name">{profile.name}</p>
+          <p>{profile.bio}</p>
+        </section>
+        <section id="education">
+          <h2>Education</h2>
+          {cv.education.map(entry => <div class="cv-entry">
+            <h3>{entry.title}</h3>
+            <p class="cv-detail">{[entry.institution, entry.period].filter(Boolean).join(' · ')}</p>
+            {entry.description && <p>{entry.description}</p>}
+          </div>)}
+        </section>
+        <section id="interests">
+          <h2>Research interests</h2>
+          <ul class="cv-terms" role="list">{profile.interests.map(interest => <li>{interest}</li>)}</ul>
+        </section>
+        <section id="publications">
+          <h2>Publications</h2>
+          <Publications />
+        </section>
+        {groups.slice(1).map(group => <section id={group.id}>
+          <h2>{group.label}</h2>
+          {group.entries.map(entry => <div class="cv-entry">
+            <h3>{entry.title}</h3>
+            <p class="cv-detail">{[entry.institution, entry.period].filter(Boolean).join(' · ')}</p>
+            {entry.description && <p>{entry.description}</p>}
+          </div>)}
+        </section>)}
+        <section id="projects">
+          <h2>Selected projects</h2>
+          {cv.projects.filter(p => p.selected).map(project => <div class="cv-entry" id={project.id}>
+            <h3>{project.title}</h3>
+            <p class="cv-detail">{project.tags.join(' · ')}</p>
+            <p>{project.summary}</p>
+            {project.url && <a href={/^https?:\/\//i.test(project.url) ? project.url : href(project.url)}>Project page</a>}
+          </div>)}
+        </section>
+        <section id="skills">
+          <h2>Technical skills</h2>
+          <dl class="cv-skills">{cv.skills.map(skill => <div><dt>{skill.area}</dt><dd>{skill.tools.join(', ')}</dd></div>)}</dl>
+        </section>
+        {optionalGroups.map(group => <section id={group.id}>
+          <h2>{group.label}</h2>
+          {group.entries.map(entry => <div class="cv-entry">
+            <h3>{entry.title}</h3>
+            <p class="cv-detail">{[entry.institution,entry.period].filter(Boolean).join(' · ')}</p>
+            {entry.description && <p>{entry.description}</p>}
+          </div>)}
+        </section>)}
+        <section id="contact">
+          <h2>Contact &amp; academic profiles</h2>
+          {profile.email && <p><a href={'mailto:' + profile.email}>{profile.email}</a>{profile.email.endsWith('@example.com') && <small class="cv-detail"> (example address)</small>}</p>}
+          {profiles.length > 0 && <ul class="cv-terms" role="list">{profiles.map(item => <li><a href={item.url}>{item.label}</a></li>)}</ul>}
+        </section>
+      </div>
+    </div>
+  </div>
+</Layout>

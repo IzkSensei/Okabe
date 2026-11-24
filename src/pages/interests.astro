@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { recommendations } from '../lib/collections';
+import '../styles/collection.css';
+const categories = [...new Set(recommendations.map(item => item.category))];
+const allExamples = recommendations.length > 0 && recommendations.every(item => item.sample);
+---
+<Layout title="Interests" description="A personal shelf of books, films, music, and other recommendations." section="Interests">
+  <div class="wrap collection-page">
+    <header class="collection-heading">
+      <h1>Interests</h1>
+      <p>{allExamples ? 'A sample shelf of books, films, music, and collections to explore.' : 'Books, films, recordings, and other recommendations.'}</p>
+    </header>
+    {categories.length === 0 && <p>No recommendations have been added yet.</p>}
+    <div class="collection-shelf">
+      {categories.map(category => <section class="shelf-category">
+        <h2>{category}</h2>
+        <ul>{recommendations.filter(item => item.category === category).map(item => <li class="shelf-item">
+          <div>
+            <h3><a href={item.url}>{item.title}</a></h3>
+            <div class="shelf-meta">
+              <span>{item.creator}</span>{item.year && <span>{item.year}</span>}
+              {item.favorite && <span>Favourite</span>}{item.rating && <span>{item.rating}/5</span>}
+              {item.sample && !allExamples && <span>Sample</span>}
+            </div>
+            <p>{item.note}</p>
+          </div>
+          {item.image && <img class="shelf-cover" src={item.image} alt="" width="85" height="106" loading="lazy" decoding="async" />}
+        </li>)}</ul>
+      </section>)}
+    </div>
+  </div>
+</Layout>

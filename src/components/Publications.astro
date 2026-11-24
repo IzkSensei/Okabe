@@ -1,0 +1,44 @@
+---
+import { cv } from '../data/cv';
+import type { Publication } from '../data/cv';
+import { href } from '../lib/paths';
+
+interface Props { selectedOnly?: boolean }
+const { selectedOnly = false } = Astro.props;
+const papers = cv.publications
+  .filter(paper => !selectedOnly || paper.selected)
+  .sort((a, b) => b.year - a.year);
+
+function resources(paper: Publication) {
+  const doi = paper.doi?.replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '');
+  return [
+    { label: 'DOI', url: doi ? 'https://doi.org/' + doi : undefined },
+    { label: 'Paper PDF', url: paper.pdf },
+    { label: 'Preprint', url: paper.preprint },
+    { label: 'Code', url: paper.code },
+    { label: 'Project', url: paper.project },
+  ].filter((link): link is {label:string; url:string} => Boolean(link.url));
+}
+---
+{papers.length ? (
+  <ol class="papers" role="list">
+    {papers.map(paper =>
+      <li>
+        <div class="citation-year">{paper.year} · {paper.status}</div>
+        <h3>{paper.title}</h3>
+        <p>{paper.authors.join(', ')}{paper.venue && <> · <cite>{paper.venue}</cite></>}</p>
+        <div class="paper-links">{resources(paper).map(link =>
+          <a href={/^https?:\/\//i.test(link.url) ? link.url : href(link.url)}>{link.label}</a>
+        )}</div>
+      </li>
+    )}
+  </ol>
+) : <p class="publication-empty">{selectedOnly ? 'No selected publications listed yet.' : 'No publications listed yet.'}</p>}
+<style>
+  .papers {padding:0; margin:0; list-style:none}
+  .papers li + li {border-top:1px solid var(--line);padding-top:1rem;margin-top:1.2rem}
+  .papers h3 {font:normal 1.35rem/1.35 var(--serif); margin:.2rem 0}
+  .papers p,.publication-empty {margin:.45rem 0;color:var(--muted)}
+  .citation-year {font: .82rem/1.5 var(--sans); color:var(--muted); text-transform:capitalize}
+  .paper-links {display:flex;flex-wrap:wrap;gap:.85rem;font-size:.9rem}
+</style>

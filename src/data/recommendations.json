@@ -1,0 +1,40 @@
+[
+  {
+    "category": "Books",
+    "title": "Flatland",
+    "creator": "Edwin A. Abbott",
+    "year": 1884,
+    "cover": "flatland.webp",
+    "note": "A square tries to describe a sphere. The diagrams make a surprisingly good companion to the first time you try to picture a fourth dimension.",
+    "url": "https://www.gutenberg.org/ebooks/97",
+    "sample": true
+  },
+  {
+    "category": "Movies",
+    "title": "A Trip to the Moon",
+    "creator": "Georges Méliès",
+    "year": 1902,
+    "cover": "moon.webp",
+    "note": "Watch the sets at the edges of the frame. Half the pleasure comes from seeing how much of the illusion fits on a small stage.",
+    "url": "https://commons.wikimedia.org/wiki/Category:Le_voyage_dans_la_lune_(film)",
+    "sample": true
+  },
+  {
+    "category": "Music",
+    "title": "Gymnopédie No. 1",
+    "creator": "Erik Satie",
+    "year": 1888,
+    "cover": "score.webp",
+    "note": "Follow the bass through the opening measures. Its slow, steady motion makes each small shift in the melody easier to hear.",
+    "url": "https://imslp.org/wiki/3_Gymnop%C3%A9dies_(Satie,_Erik)",
+    "sample": true
+  },
+  {
+    "category": "Other interests",
+    "title": "Photochrom Prints",
+    "creator": "Library of Congress",
+    "note": "Start with a town you know and look for a surviving street corner. The prints make the colours of an earlier landscape feel almost within reach.",
+    "url": "https://www.loc.gov/collections/photochrom-prints/",
+    "sample": true
+  }
+]

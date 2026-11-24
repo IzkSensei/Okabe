@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="300" viewBox="0 0 620 300" role="img" aria-labelledby="title desc">
+<title id="title">Measured and predicted cart distances</title>
+<desc id="desc">Predictions at four observations are 2, 4, 6 and 8 metres. Measurements are 3, 3, 7 and 7 metres.</desc>
+<rect width="620" height="300" fill="#f3f5ef"/>
+<g fill="none" stroke="#c9cfc5"><path d="M70 224H570M70 174H570M70 124H570M70 74H570"/></g>
+<g fill="#435746" font-family="system-ui,sans-serif" font-size="15">
+<text x="20" y="26">Distance (m)</text>
+<text x="45" y="229">2</text><text x="45" y="179">4</text><text x="45" y="129">6</text><text x="45" y="79">8</text>
+<g text-anchor="middle"><text x="106" y="260">1</text><text x="242" y="260">2</text><text x="378" y="260">3</text><text x="514" y="260">4</text><text x="310" y="286">Observation</text></g></g>
+<path d="M106 224L514 74" fill="none" stroke="#506458" stroke-width="2" stroke-dasharray="7 5"/>
+<g stroke="#20563d" stroke-width="3"><path d="M106 224v-25m136-25v25m136-75v-25m136-25v25" fill="none"/></g>
+<g fill="#20563d"><circle cx="106" cy="199" r="6"/><circle cx="242" cy="199" r="6"/><circle cx="378" cy="99" r="6"/><circle cx="514" cy="99" r="6"/></g>
+</svg>

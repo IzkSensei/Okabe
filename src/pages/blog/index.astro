@@ -1,0 +1,74 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PostList from '../../components/PostList.astro';
+import { href } from '../../lib/paths';
+import { getPosts } from '../../lib/posts';
+
+const posts = await getPosts();
+const years = [...new Set(posts.map(post => post.data.date.getUTCFullYear()))];
+const tags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
+---
+<Layout title="Blog" description="Technical field notes on machine learning, data systems, and working with imperfect measurements. Written in English and Persian." section="Blog">
+  <div class="archive-shell">
+    <header class="archive-heading">
+      <h1>Blog</h1>
+      <p>Notes on machine learning, data systems, and the experiments in between. Written in English and Persian.</p>
+      <a class="feed-link" href={href('rss.xml')}>RSS feed</a>
+    </header>
+    <div class="archive-tools" id="archive-tools" hidden>
+      <div class="language-tabs" role="group" aria-label="Filter by language">
+        <button type="button" data-lang="all" aria-pressed="true">All languages</button>
+        <button type="button" data-lang="en" aria-pressed="false">English</button>
+        <button type="button" data-lang="fa" aria-pressed="false" lang="fa" dir="rtl">فارسی</button>
+      </div>
+      <label class="topic-select">Topic
+        <select id="topic"><option value="">All topics</option>{tags.map(tag => <option>{tag}</option>)}</select>
+      </label>
+    </div>
+    {years.map(year => (
+      <section class="archive-year" data-year>
+        <h2>{year}</h2>
+        <PostList posts={posts.filter(post => post.data.date.getUTCFullYear() === year)} />
+      </section>
+    ))}
+    {posts.length === 0 && <p>No posts have been published yet.</p>}
+    <p id="filter-status" class="sr-blog" role="status"></p>
+    <p id="empty-results" hidden>No articles match this language and topic. <button type="button">Reset filters</button></p>
+  </div>
+</Layout>
+<script>
+  const tools = document.getElementById('archive-tools')!;
+  tools.hidden = false;
+  const buttons = Array.from(tools.querySelectorAll<HTMLButtonElement>('[data-lang]'));
+  const topic = tools.querySelector<HTMLSelectElement>('select')!;
+  const rows = Array.from(document.querySelectorAll<HTMLElement>('.archive-year .post-row'));
+  const groups = document.querySelectorAll<HTMLElement>('[data-year]');
+  const empty = document.getElementById('empty-results')!;
+  const status = document.getElementById('filter-status')!;
+  let language = 'all';
+
+  function filter() {
+    let count = 0;
+    for (const row of rows) {
+      const tags: string[] = JSON.parse(row.dataset.tags ?? '[]');
+      row.hidden = (language !== 'all' && row.dataset.language !== language) || (!!topic.value && !tags.includes(topic.value));
+      if (!row.hidden) count++;
+    }
+    groups.forEach(group => { group.hidden = !group.querySelector('.post-row:not([hidden])'); });
+    buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === language)));
+    status.textContent = count + (count === 1 ? ' article shown.' : ' articles shown.');
+    empty.hidden = count > 0;
+  }
+
+  buttons.forEach(button => button.addEventListener('click', () => {
+    language = button.dataset.lang!;
+    filter();
+  }));
+  topic.addEventListener('change', filter);
+  empty.querySelector('button')?.addEventListener('click', () => {
+    language = 'all';
+    topic.value = '';
+    filter();
+    buttons[0].focus();
+  });
+</script>

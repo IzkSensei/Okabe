@@ -1,0 +1,60 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Publications from '../components/Publications.astro';
+import { getPosts, postUrl, displayDate } from '../lib/posts';
+import { href } from '../lib/paths';
+import { cv } from '../data/cv';
+import { profile } from '../config/profile';
+import '../styles/home.css';
+
+const posts = (await getPosts()).slice(0, 3);
+const projects = cv.projects.filter(p => p.selected).slice(0, 3);
+const profiles = profile.profiles.filter(p => p.url);
+const person = { '@context':'https://schema.org', '@type':'Person', name:profile.name, jobTitle:profile.title,
+  affiliation:{'@type':'EducationalOrganization',name:profile.affiliation}, knowsAbout:profile.interests, sameAs:profiles.map(p=>p.url) };
+---
+<Layout title={profile.name + ' — Academic profile'} description={profile.bio} section="Home">
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(person).replace(/</g,'\\u003c')}/>
+  <div class="wrap">
+    <section class="intro" aria-labelledby="identity">
+      <div>
+        <p class="kicker"><span></span>Academic profile</p>
+        <h1 id="identity">{profile.name}</h1>
+        <p class="role">{profile.title}</p>
+        <p class="institution"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 9 9-5 9 5H3Zm1 11h16M6 17v-6m4 6v-6m4 6v-6m4 6v-6"/></svg>{profile.affiliation}</p>
+        <p class="intro-bio">{profile.bio}</p>
+        <div class="intro-actions">
+          <a class="cv-btn" href={href('cv/')}><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.6"><path d="M5 3h10l4 4v14H5zM15 3v5h4M8 12h8m-8 4h6"/></svg>View academic CV</a>
+          <a class="contact-link" href="#contact">Get in touch</a>
+        </div>
+      </div>
+      <figure class="density"><img width="490" height="286" src={href('illustrations/density.svg')} alt="Three overlapping Gaussian peaks shown as fine parallel curves on an x–y plane."/><figcaption><span>Gaussian mixture</span><span>Computational sketch</span></figcaption></figure>
+    </section>
+    <div class="home-columns">
+      <section class="research" aria-labelledby="research-title">
+        <div class="section-line"><h2 id="research-title">Selected research</h2><a href={href('cv/#projects')}>All projects</a></div>
+        <ul role="list" class="work-list">{projects.map(project =>
+          <li><a href={href('cv/#'+project.id)}>
+            {project.image && <img width="96" height="84" src={href(project.image)} alt=""/>}
+            <div><small>{project.tags.join(' / ')}</small><h3>{project.title}</h3><p>{project.shortSummary || project.summary}</p></div>
+          </a></li>
+        )}</ul>
+      </section>
+      <aside class="journal">
+        <div class="section-line"><h2>Recent writing</h2><a href={href('blog/')}>All posts</a></div>
+        <ul role="list" class="writing-list">{posts.map(post =>
+          <li><div><time datetime={post.data.date.toISOString().slice(0,10)}>{displayDate(post.data.date,'en')}</time><span aria-hidden="true">·</span><span lang={post.data.lang}>{post.data.lang === 'fa' ? 'فارسی' : 'English'}</span></div>
+          <a href={postUrl(post)} lang={post.data.lang} dir={post.data.lang==='fa'?'rtl':'ltr'}>{post.data.title}</a></li>
+        )}</ul>
+        <h3 class="topic-title">Research interests</h3><ul class="topic-list" role="list">{profile.interests.map(t=><li>{t}</li>)}</ul>
+      </aside>
+    </div>
+    <div class="home-end">
+      <section><div class="section-line"><h2>Selected publications</h2></div><Publications selectedOnly /></section>
+      <section id="contact"><div class="section-line"><h2>Contact</h2></div>
+        {profile.email && <p><a href={'mailto:'+profile.email}>{profile.email}</a>{profile.email.endsWith('@example.com') && <small> (example address)</small>}</p>}
+        {profiles.length > 0 && <div class="profile-links">{profiles.map(p=><a href={p.url}>{p.label}</a>)}</div>}
+      </section>
+    </div>
+  </div>
+</Layout>

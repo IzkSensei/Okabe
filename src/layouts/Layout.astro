@@ -1,0 +1,74 @@
+---
+import '../styles/global.css';
+import { profile } from '../config/profile';
+import { href } from '../lib/paths';
+import Mark from '../components/Mark.astro';
+interface Props { title: string; description: string; section?: string; article?: boolean; lang?: string; }
+const { title, description, section = '', article = false, lang = 'en' } = Astro.props;
+const nav = [['Home',''], ['CV','cv/'], ['Blog','blog/'], ['Photography','photography/'], ['Interests','interests/']];
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const pageTitle = title + ' · ' + profile.siteTitle;
+const image = new URL(href('share.png'), Astro.site).href;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <link rel="icon" href={href('favicon.svg')} type="image/svg+xml" />
+  <link rel="alternate" type="application/rss+xml" title={profile.siteTitle} href={href('rss.xml')} />
+  <meta property="og:type" content={article ? 'article' : 'website'} />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:site_name" content={profile.siteTitle} />
+  <meta property="og:locale" content={lang === 'fa' ? 'fa_IR' : 'en_US'} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={image} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <slot name="head" />
+  <script is:inline>
+    try {
+      const saved = localStorage.getItem('fieldnotes-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+    } catch {}
+  </script>
+</head>
+<body>
+  <a href="#main" class="skip">Skip to content</a>
+  <header class="masthead"><div class="wrap masthead-inner">
+    <a class="brand" href={href('')}><Mark />{profile.siteTitle}</a>
+    <nav aria-label="Main navigation">{nav.map(([label,path]) =>
+      <a href={href(path)} aria-current={section === label ? 'page' : undefined}>{label}</a>
+    )}</nav>
+    <button type="button" class="theme" aria-label="Dark theme" aria-pressed="false" hidden>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M19.6 15.6A8.5 8.5 0 0 1 8.4 4.4a8.5 8.5 0 1 0 11.2 11.2Z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3.8"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg>
+    </button>
+  </div></header>
+  <main id="main" tabindex="-1"><slot /></main>
+  <footer class="site-footer"><div class="wrap"><span>{profile.siteTitle} <span class="sep">/</span> {profile.name}</span><a href={href('rss.xml')}>RSS feed</a></div></footer>
+  <script>
+    const toggle = document.querySelector<HTMLButtonElement>('.theme');
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+    function refresh() {
+      if (!toggle) return;
+      const dark = (document.documentElement.dataset.theme || (systemTheme.matches ? 'dark' : 'light')) === 'dark';
+      toggle.setAttribute('aria-pressed', String(dark));
+      toggle.title = dark ? 'Switch to light theme' : 'Switch to dark theme';
+      toggle.hidden = false;
+    }
+    refresh();
+    systemTheme.addEventListener('change', refresh);
+    toggle?.addEventListener('click', () => {
+      const choice = toggle.getAttribute('aria-pressed') === 'true' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = choice;
+      try { localStorage.setItem('fieldnotes-theme', choice); } catch {}
+      refresh();
+    });
+  </script>
+</body>
+</html>

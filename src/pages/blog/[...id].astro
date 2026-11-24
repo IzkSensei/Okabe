@@ -1,0 +1,100 @@
+---
+import { render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { getPosts, postUrl, displayDate, readingMinutes } from '../../lib/posts';
+import { href } from '../../lib/paths';
+import { profile } from '../../config/profile';
+import 'katex/dist/katex.min.css';
+import '../../styles/blog.css';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, older: posts[i + 1], newer: posts[i - 1] },
+  }));
+}
+const { post, older, newer } = Astro.props;
+const { title, lang, date, tags, description } = post.data;
+const { Content, headings } = await render(post);
+const fa = lang === 'fa';
+const direction = fa ? 'rtl' : 'ltr';
+const sections = headings.filter(h => h.depth === 2 && h.slug !== 'footnote-label');
+const minutes = new Intl.NumberFormat(fa ? 'fa-IR' : 'en-GB').format(readingMinutes(post.body ?? ''));
+const url = new URL(postUrl(post), Astro.site).href;
+const metadata = {
+  '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title,
+  description, url, mainEntityOfPage: url, inLanguage: lang,
+  datePublished: date.toISOString(), keywords: tags,
+  author: { '@type': 'Person', name: profile.name, url: new URL(href(''), Astro.site).href },
+};
+const neighbors = [
+  { post: older, label: fa ? 'یادداشت قدیمی‌تر' : 'Older article' },
+  { post: newer, label: fa ? 'یادداشت جدیدتر' : 'Newer article' },
+];
+---
+<Layout title={title} description={description} section="Blog" article lang={lang}>
+  <Fragment slot="head">
+    <meta property="article:published_time" content={date.toISOString()} />
+    {tags.map(tag => <meta property="article:tag" content={tag} />)}
+    <script type="application/ld+json" set:html={JSON.stringify(metadata).replace(/</g, '\\u003c')}></script>
+  </Fragment>
+  <article class="reading-column" lang={lang} dir={direction}>
+    <header class="article-heading">
+      <a class="back-to-blog" href={href('blog/')}>{fa ? 'بازگشت به وبلاگ' : 'Back to blog'}</a>
+      <h1>{title}</h1>
+      <p class="article-deck">{description}</p>
+      <p class="reading-meta">
+        <time datetime={date.toISOString().slice(0, 10)}>{displayDate(date, lang)}</time>
+        <span aria-hidden="true">·</span>
+        <span>{fa ? minutes + ' دقیقه مطالعه' : minutes + ' min read'}</span>
+        <span aria-hidden="true">·</span>
+        <span>{fa ? 'فارسی' : 'English'}</span>
+        {post.data.sample && <><span aria-hidden="true">·</span><span>{fa ? 'یادداشت نمونه' : 'Sample article'}</span></>}
+      </p>
+      {tags.length > 0 && <ul class="article-tags" aria-label={fa ? 'موضوع‌ها' : 'Topics'}>
+        {tags.map(tag => <li><bdi>{tag}</bdi></li>)}
+      </ul>}
+    </header>
+    {sections.length >= 3 && <details class="article-contents">
+      <summary>{fa ? 'در این یادداشت' : 'In this article'}</summary>
+      <ol>{sections.map(h => <li><a href={'#' + h.slug}>{h.text}</a></li>)}</ol>
+    </details>}
+    <div class="article-prose"><Content /></div>
+    {(older || newer) && <nav class="article-neighbors" aria-label={fa ? 'یادداشت‌های دیگر' : 'More articles'}>
+      {neighbors.map(item => item.post && <a href={postUrl(item.post)}>
+        <small>{item.label}</small>
+        <span lang={item.post.data.lang} dir={item.post.data.lang === 'fa' ? 'rtl' : 'ltr'}>{item.post.data.title}</span>
+      </a>)}
+    </nav>}
+  </article>
+</Layout>
+<script>
+  const article = document.querySelector('article.reading-column');
+  const fa = article?.getAttribute('lang') === 'fa';
+  if (navigator.clipboard && window.isSecureContext) {
+    article?.querySelectorAll<HTMLPreElement>('pre.astro-code').forEach(pre => {
+      const frame = document.createElement('div');
+      frame.className = 'code-frame';
+      pre.before(frame);
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'copy-code';
+      const initial = fa ? 'کپی کد' : 'Copy code';
+      copy.textContent = initial;
+      copy.setAttribute('aria-live', 'polite');
+      frame.append(copy, pre);
+      let reset = 0;
+      copy.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(pre.textContent ?? '');
+          copy.textContent = fa ? 'کپی شد' : 'Copied';
+        } catch {
+          copy.textContent = fa ? 'کد را دستی کپی کنید' : 'Select and copy manually';
+        }
+        window.clearTimeout(reset);
+        reset = window.setTimeout(() => { copy.textContent = initial; }, 2200);
+      });
+    });
+  }
+</script>
